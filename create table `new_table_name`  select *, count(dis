@@ -1,0 +1,4 @@
+create table `new_table_name`  select * from `instagram-data`  group by `id`
+
+
+INSERT IGNORE INTO table_1  FROM table_2
