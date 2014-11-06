@@ -11,7 +11,7 @@
             hash: null,
             userId: null,
             locationId: null,
-            distance: 1500,
+            distance: 2000,
             search: null,
             searchId: null,
             accessToken: null,
@@ -62,7 +62,7 @@
                 url += "/media/search";
                 params.lat = settings.search.lat;
                 params.lng = settings.search.lng;
-                params.distance = '1500';
+                params.distance = '2000';
                 settings.search.max_timestamp != null && (params.max_timestamp = settings.search.max_timestamp);
                 settings.search.min_timestamp != null && (params.min_timestamp = settings.search.min_timestamp);
             } else if (settings.userId != null) {
@@ -90,27 +90,27 @@
             type: "GET",
             dataType: "jsonp",
             cache: false,
+            timeout: 30000,
             url: composeRequestURL(),
             error: function() {
-                $('button#cancel').click();
+                $('button#cancel').click().addClass('red');
+                $('.status').removeClass('ok');
+                localStorage.lastrow--;
+                localStorage.last_time = undefined;
                 setTimeout(function() {
                     $('button#more').click();
                 },
-                1000)
+                5000);
             },
-            statusCode: {
-                502: function() {
-                  alert('502');
-                }
-              },
             success: function(res) {
+                $('.status').addClass('ok');
                 $.each(res.data,
                 function(i, item) {
                     if (!item.caption) {
                         item.caption = "No caption"
                     }
-
-                    $('div#out').attr('data-created_time', item.created_time).text(item.created_time);
+                    $created_time = item.created_time;
+                    localStorage.last_time = $created_time;
                     $id = item.id;
 
                     if (!item.location.name) {
@@ -135,7 +135,14 @@
                     $lat = item.location.latitude;
                     $lng = item.location.longitude;
                     $link = item.images.standard_resolution.url;
-                    $('#out').empty().load('b.php', {
+                    $username = item.user.username;
+                    $filter = item.filter;
+                    $likes = item.likes.count;
+                    $profile_picture = item.user.profile_picture;
+                    $comments_count = item.comments.count;
+                    $insta_link = item.link;
+
+                    $('#out').empty().load('b.php',{
                         id: $id,
                         locationname: $locationname,
                         caption: $caption,
@@ -143,21 +150,27 @@
                         time: $time,
                         lat: $lat,
                         lng: $lng,
-                        link: $link
+                        link: $link,
+                        filter : $filter,
+                        likes : $likes,
+                        username : $username,
+                        profile_picture : $profile_picture,
+                        comments_count : $comments_count,
+                        insta_link : $insta_link
                     });
                 })
                 var dataLength = res.data.length
-                  if (dataLength <= 3) {
-                      $('button#cancel').click();
+                  if (dataLength <= 5) {
+                      localStorage.last_time = undefined;
                       setTimeout(function() {
                           $('button#more').click()
                       },
-                      1000)
+                      2000)
                   }else{
                     setTimeout(function() {
                           $('button#next').click()
                       },
-                      1000)
+                      2000)
                   }
             }
         });
